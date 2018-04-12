@@ -8,10 +8,24 @@ class BrokenCircuitException(Exception):
 
 class Node(object):
     '''Base class for circuit nodes'''
+
+    __nextid__ = 0
     
     def __init__(self):
         self.kids = []
+        self.id = Node.__nextid__
+        Node.__nextid__ += 1
 
+    def __lt__(self, other):
+        return self.id < other.id
+
+    def __hash__(self):
+        return hash(7879 + self.id) * hash(type(self))
+        
+    def getID(self):
+        '''Get unique node id (as int)'''
+        return self.id
+        
     def getChildren(self):
         '''Get child nodes of this node'''
         return self.kids
@@ -20,6 +34,10 @@ class Node(object):
         '''Get i-th child of this node'''
         return self.kids[i]
 
+    def setChild(self, i, nd):
+        '''Set i-th child of this node'''
+        self.kids[i] = nd
+        
     def support(self):
         return set()
 
@@ -29,6 +47,7 @@ class Literal(Node):
     '''
     
     def __init__(self, b):
+        Node.__init__(self)
         self.value = b
 
     def __repr__(self):
@@ -48,6 +67,7 @@ class Variable(Node):
     '''A circuit node representing a named internal or input signal.'''
 
     def __init__(self, name):
+        Node.__init__(self)
         self.name = name
 
     def __repr__(self):
@@ -75,6 +95,7 @@ class BinOp(OpNode):
     '''A circuit node representing a binary logic gate.'''
     
     def __init__(self, f, opstr, x, y):
+        Node.__init__(self)
         self.kids = [x, y]
         self.f = f
         self.opstr = opstr
@@ -93,6 +114,7 @@ class UnOp(OpNode):
     '''A circuit node representing a unary logic gate.'''
 
     def __init__(self, f, opstr, x):
+        Node.__init__(self)
         self.kids = [x]
         self.f = f
         self.opstr = opstr
@@ -123,7 +145,7 @@ class Circuit(object):
     def check(self):
         '''Perform sanity checks on the circuit: all outputs defined, all
         inputs unconstrained, no undefined signals, no combinational
-        loops. This function is called by the constructor.
+        loops. This function is called by the constructor. 
         '''
 
         # Check that all outputs are defined
@@ -157,7 +179,64 @@ class Circuit(object):
                     visit(z)
                 stack.pop()
             visit(x)
-                
+
+    def clean(self):
+        '''Clean up the structure of the circuit: Collapse nodes with single
+        fanout, remove dead nodes.
+        '''
+
+        # Collapse non-fanout nodes
+        signals = self.outputs | self.equations.keys() | self.inputs
+        fanout = {s: set() for s in signals}
+        deps = {x: self.equations[x].support() for x in self.equations.keys()}        
+        for x, ys in deps.items():
+            for y in ys:
+                fanout[y].add(x)
+        collapse = {x for x,ys in fanout.items() if len(ys) == 1}.difference(self.inputs)
+        print ("======================")
+        print ("COLLAPSE:")
+        print (collapse)
+        print ("======================")
+        for x in self.getSignals():
+            def subst(nd):
+                if type(nd) == Variable:
+                    y = nd.getName()
+                    if y in collapse:
+                        print ("collapse %s" % y)
+                        return subst(self.equations[y])
+                    else:
+                        return nd
+                elif type(nd) == UnOp:
+                    nd.setChild(0, subst(nd.getChild(0)))
+                    return nd
+                elif type(nd) == BinOp:
+                    nd.setChild(0, subst(nd.getChild(0)))
+                    nd.setChild(1, subst(nd.getChild(1)))
+                    return nd
+                else:
+                    return nd
+            e = self.equations[x]
+            self.equations[x] = subst(e)
+
+        # Remove dead nodes
+        deps = {x: self.equations[x].support() for x in self.equations.keys()}
+        edges = {(x,y) for x, ys in deps.items() for y in ys}
+        closure = edges
+        while True:
+            frontier = {(x,w) for x,y in closure for q,w in closure if q == y}
+            nxt_closure = closure | frontier
+            if closure == nxt_closure:
+                break
+            closure = nxt_closure
+        live = {y for (x,y) in closure if x in self.outputs}
+        dead = signals.difference(live).difference(self.inputs).difference(self.outputs)
+        print ("======================")
+        print ("DEAD:")
+        print (dead)
+        print ("======================")
+        for s in dead:
+            del self.equations[s]
+                        
     def getInputs(self):
         '''Returns the set of input identifiers.
         '''
