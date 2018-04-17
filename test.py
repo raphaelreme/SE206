@@ -3,15 +3,15 @@
 import sys
 import random
 
-from circuit import *
-from circuit.cnf import *
+import circuit.circuit as circ
+from circuit.cnf import SatVar, Solver
 
 # ===================================== Loading and simulating circuits
 print ("===============================")
 
 # Load and simulate full adder circuit
 try:
-    fa = circuit.parse('examples/fa.crc')
+    fa = circ.parse('examples/fa.crc')
 except Exception as e:
     print ("[INF] Could not load circuit. Good bye!")
     raise e    
@@ -44,7 +44,7 @@ print ("===============================")
     
 # Let's try something bigger: 16 bit ripple carry adder...
 try:
-    c = circuit.parse('examples/csa16.crc')
+    c = circ.parse('examples/csa16.crc')
 except Exception as e:    
     print ("[INF] Could not load circuit. Good bye!")
     raise e
