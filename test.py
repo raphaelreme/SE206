@@ -18,7 +18,7 @@ except Exception as e:
 
 # Write circuit graph to file
 with open('fa.dot', 'w') as f:
-    f.write(c.dot())
+    f.write(fa.dot())
 
 inputs = dict()
 print ("{:^3}{:^3}{:^4}|{:^4}{:^3}".format('a','b','cin','cout','s'))
