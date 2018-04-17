@@ -299,19 +299,20 @@ class Circuit(object):
 
     def dot(self):
         s = 'digraph %s {\n' % self.name
+        s += '  rankdir="LR";\n'
         for x in self.getInputs():
-            s += '  %s [label=\"%s\" shape=circle];\n' % (x, x)        
+            s += '  %s [label=\"%s\", shape=circle];\n' % (x, x)        
         for x in self.getOutputs():
-            s += '  %s [label=\"%s\" shape=diamond];\n' % (x, x)
+            s += '  %s [label=\"%s\", shape=diamond];\n' % (x, x)
         signals = [x for x in self.getSignals() if not x in self.getOutputs()]
         for x in signals:
-            s += '  %s [label=\"%s\" shape=plaintext];\n' % (x, x)        
+            s += '  %s [label=\"%s\", shape=hexagon];\n' % (x, x)        
         drawn = dict()
         def draw(nd):
             if nd in drawn.keys():
                 return ''
             elif type(nd) is Literal:
-                s = '\t%d [label="%d" shape=rect];\n' % (nd.getID(), nd.getValue())
+                s = '\t%d [label="%d", shape=rect];\n' % (nd.getID(), nd.getValue())
                 drawn[nd] = str(nd.getID())
                 return s
             elif type(nd) is Variable:
@@ -321,7 +322,7 @@ class Circuit(object):
                 s = draw(nd.getChild(0))
                 cid = drawn[nd.getChild(0)]
                 myid = str(nd.getID())
-                s += '  %s [label="%s" shape=plaintext];\n' % (myid, nd.getOp())
+                s += '  %s [label="%s", shape=square, style=filled, color=gray];\n' % (myid, nd.getOp())
                 s += '  %s -> %s;\n' % (cid, myid)
                 drawn[nd] = myid
                 return s
@@ -331,7 +332,7 @@ class Circuit(object):
                 myid = str(nd.getID())
                 lid = drawn[nd.getChild(0)]
                 rid = drawn[nd.getChild(1)]
-                s += '  %s [label="%s" shape=plaintext];\n' % (myid, nd.getOp())
+                s += '  %s [label="%s", shape=square, style=filled, color=gray];\n' % (myid, nd.getOp())
                 s += '  %s -> %s;\n' % (lid, myid)
                 s += '  %s -> %s;\n' % (rid, myid)
                 drawn[nd] = myid
