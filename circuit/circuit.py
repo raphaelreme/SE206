@@ -197,6 +197,9 @@ class Circuit(object):
         print ("COLLAPSE:")
         print (collapse)
         print ("======================")
+        def eval(nd, a, b):
+            f = nd.getFun()
+            return Literal(f(a.getValue(), b.getValue()))
         for x in self.getSignals():
             def subst(nd):
                 if type(nd) == Variable:
@@ -209,9 +212,14 @@ class Circuit(object):
                     nd.setChild(0, subst(nd.getChild(0)))
                     return nd
                 elif type(nd) == BinOp:
-                    nd.setChild(0, subst(nd.getChild(0)))
-                    nd.setChild(1, subst(nd.getChild(1)))
-                    return nd
+                    c1 = subst(nd.getChild(0))
+                    c2 = subst(nd.getChild(1))
+                    if type(c1) is Literal and type(c2) is Literal:
+                        return eval(nd, c1, c2)
+                    else:
+                        nd.setChild(0, c1)
+                        nd.setChild(1, c2)
+                        return nd
                 else:
                     return nd
             e = self.equations[x]
