@@ -202,7 +202,6 @@ class Circuit(object):
                 if type(nd) == Variable:
                     y = nd.getName()
                     if y in collapse:
-                        print ("collapse %s" % y)
                         return subst(self.equations[y])
                     else:
                         return nd
@@ -220,17 +219,19 @@ class Circuit(object):
 
         # Remove dead nodes
         deps = {x: self.equations[x].support() for x in self.equations.keys()}
-        edges = {(x,y) for x, ys in deps.items() for y in ys}
-        closure = edges
+        def dependencies(x):
+            try:
+                return deps[x]
+            except KeyError:
+                return set()
+        reachable = {x for x in self.outputs}
         while True:
-            frontier = {(x,w) for x,y in closure for q,w in closure if q == y}
-            nxt_closure = closure | frontier
-            if closure == nxt_closure:
+            imgs = [dependencies(x) for x in reachable]
+            nextReachable = {y for dep in imgs for y in dep}
+            if nextReachable.issubset(reachable):
                 break
-            closure = nxt_closure
-        live = {y for (x,y) in closure if x in self.outputs}
-        dead = signals.difference(live).difference(self.inputs).difference(self.outputs)
-        print ("======================")
+            reachable |= nextReachable
+        dead = signals.difference(reachable).difference(self.inputs)
         print ("DEAD:")
         print (dead)
         print ("======================")
