@@ -16,10 +16,10 @@ class Cnf(object):
     product of sum form (POS).
     '''
     
-    def __init__(self, clauses = set()):
+    def __init__(self, clauses = []):
         '''Constructor. If defined, the CNF is initialized with the given set of clauses.'''
-        
-        self.clauses = clauses
+
+        self.clauses = [cl for cl in clauses]
         self.variables = set()
         for c in clauses:
             self.variables |= {l.name for l in c.literals}
@@ -30,27 +30,30 @@ class Cnf(object):
 
     def __and__(self, other):
         if type(other) is Cnf:
-            return Cnf(self.clauses | other.clauses)
+            return Cnf([l for l in self.clauses + other.clauses])
         elif other.className() == 'Clause':
-            return Cnf(self.clauses | {other})
+            return Cnf([l for l in self.clauses + [other]])
         elif other.className() == 'SatVar':
-            return Cnf(self.clauses | {Clause({other})})
+            return Cnf(self.clauses + [Clause([other])])
         else:
             raise TypeError('incompatible types')
 
     def __iand__(self, other):
         if type(other) is Cnf:
-            self.clauses |= other.clauses
+            self.clauses += [l for l in other.clauses]
             self.variables |= other.variables
-            self.maxVar = max(self.maxVar, maxvar(other.clauses))
+            self.maxVar = max(self.maxVar, other.maxVar)
+            return self
         elif other.className() == 'Clause':
-            self.clauses.add(other)
-            self.variables |= other.variables
+            self.clauses.append(other)
+            self.variables |= {l.name for l in other.literals}
             self.maxVar = max(self.maxVar, maxvar([other]))
+            return self
         elif other.className() == 'SatVar':
-            self.clauses.add(Clause({other}))
+            self.clauses.append(Clause([other]))
             self.variables.add(other.name)
             self.maxVar = max(self.maxVar, other.id)
+            return self
         else:
             raise TypeError('incompatible types')
         return self
@@ -72,38 +75,50 @@ class Cnf(object):
 class Clause(object):
     '''Represents a clause, which is a disjunction of literals.'''
     
-    def __init__(self, literals = set()):
-        self.literals = literals
+    def __init__(self, literals = []):
+        self.literals = [l for l in literals]
 
     def className(self):
         return 'Clause'
 
     def __and__(self, other):
         if type(other) == Clause:
-            return Cnf({self, other})
+            return Cnf([self, other])
         else:
-            return Cnf({self}) & Cnf({Clause({other})})
+            return Cnf([self]) & Cnf([Clause([other])])
         
     def __or__(self, other):
         if type(other) is Clause:
-            return Clause(self.literals | other.literals)
+            return Clause([l for l in self.literals + other.literals])
         elif other.className() == 'SatVar':
-            return Clause(self.literals | {other})
+            return Clause([l for l in self.literals + [other]])
         else:
             raise TypeError('incompatible types')
 
     def __ior__(self, other):
         if type(other) is Clause:
-            self.literals |= other.literals
+            self.literals += [l for l in other.literals]
+            return self
         elif other.className() == 'SatVar':
-            self.literals.add(other)
+            self.literals.append(other)
+            return self
         else:
             raise TypeError('incompatible types')
 
     def __repr__(self):
         lits = [str(l) for l in self.literals]
         return '(' + ' | '.join(lits) + ')'        
-        
+
+    # def __eq__(self, other):
+    #     return self.literals == other.literals
+
+    # def __hash__(self):
+    #     h = 0
+    #     for x in sorted(self.literals):
+    #         h += x.__hash__()
+    #         h *= 3
+    #     return h
+    
     def dimacs(self):
         '''Dump the clause in DIMACS format'''
         
@@ -124,15 +139,20 @@ class SatVar(object):
     phase is actually stored in this class, so a positive literal is
     just a variable and a negative literal is an inverted
     variable. Use the overloaded ~ operator to negate a literal.
+
+    Use the constructor SatVar() to get a fresh variable.
     '''
     
     __nextid__ = 1
     __vartable__ = dict()
 
-    def __init__(self, name, phase=True):
+    def __init__(self, name=None, phase=True):
         '''Constructs a SAT variable. If phase is False, constructs a negative
         literal, otherwise a positive one.'''
-        
+
+        if name is None:
+            name = 'SatVar__{}'.format(SatVar.__nextid__)
+            
         self.name = name
         self.phase = phase
         try:
@@ -141,6 +161,7 @@ class SatVar(object):
             self.id = SatVar.__nextid__
             SatVar.__nextid__ += 1
             SatVar.__vartable__[name] = self.id
+            # print ('{} -> {}'.format(name, self.id))
 
     def className(self):
         return 'SatVar'
@@ -176,7 +197,7 @@ class SatVar(object):
 
     def __or__(self, other):
         if type(other) is SatVar:
-            return Clause({self, other})
+            return Clause([self, other])
         elif type(other) is Clause:
             return other | self
         else:
@@ -184,7 +205,7 @@ class SatVar(object):
 
     def __and__(self, other):
         if type(other) is SatVar:
-            return Clause({self}) & Clause({other})
+            return Clause([self]) & Clause([other])
         elif type(other) is Clause:
             return other & self
         elif type(other) is Cnf:
@@ -226,6 +247,19 @@ class Solution:
 
     def __bool__(self):
         return self.sat
+
+    def __invert__(self):
+        '''Returns a blocking clause for this solution.'''
+        if not self.sat:
+            return None
+        bc = None
+        for x, b in self.assignment.items():
+            l = ~SatVar(x) if b else SatVar(x)
+            if bc is None:
+                bc = l
+            else:
+                bc |= l
+        return bc
 
     
 class Solver:
