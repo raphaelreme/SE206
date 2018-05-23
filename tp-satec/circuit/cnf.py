@@ -153,14 +153,14 @@ class SatVar(object):
         if name is None:
             name = 'SatVar__{}'.format(SatVar.__nextid__)
             
-        self.name = name
+        self.name = str(name)
         self.phase = phase
         try:
-            self.id = SatVar.__vartable__[name]
+            self.id = SatVar.__vartable__[self.name]
         except KeyError:
             self.id = SatVar.__nextid__
             SatVar.__nextid__ += 1
-            SatVar.__vartable__[name] = self.id
+            SatVar.__vartable__[self.name] = self.id
             # print ('{} -> {}'.format(name, self.id))
 
     def className(self):
@@ -240,7 +240,7 @@ class Solution:
         if type(v) is SatVar:
             return self.assignment[v.name]
         else:
-            return self.assignment[v]
+            return self.assignment[str(v)]
 
     def items(self):
         return self.assignment.items()
