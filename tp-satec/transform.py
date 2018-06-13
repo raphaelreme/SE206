@@ -15,7 +15,7 @@ def transform(c):
 
 if __name__ == '__main__':
 
-    adder = circ.parse('examples/fa.crc')
+    adder = circ.parse('benchmarks/fa.crc')
     cnf = transform(adder)
     print (cnf)
     
