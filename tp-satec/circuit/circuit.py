@@ -274,7 +274,7 @@ class Circuit(object):
 
     def simulate(self, inputs):
         '''Simulate the circuit. Takes as input a dictionary, mapping input
-        names to Boolean values. Returns a dictionary mapping output
+        names to Boolean values. Returns a dictionary mapping input, output
         and internal signal names to Boolean values.
         '''
 
@@ -304,7 +304,7 @@ class Circuit(object):
         signals = self.getSignals()
         for x in signals:
             value[x] = sim(self.getEquation(x))
-        return {s: x for (s,x) in value.items() if s in signals}
+        return {s: x for (s,x) in value.items() if s in signals | self.inputs}
 
     def dot(self):
         s = 'digraph %s {\n' % self.name

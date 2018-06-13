@@ -245,6 +245,9 @@ class Solution:
     def items(self):
         return self.assignment.items()
 
+    def keys(self):
+        return self.assignment.keys()
+
     def __bool__(self):
         return self.sat
 
