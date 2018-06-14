@@ -5,17 +5,33 @@ import sys
 import circuit.circuit as circ
 from circuit.cnf import SatVar, Solver
 
+# The function transform takes a circuit c and returns a CNF obtained by
+# the Tseitin transformation of c.
 
-def transform(c):
+# Implementation hints:
+#
+# 1) For all inputs, outputs, and named signals of the circuit, it is
+#    required that the variable names in the CNF are the same as the
+#    signal names, i.e. after solving the CNF, it must be possible to
+#    obtain the assignment of a circuit signal by indexing the
+#    solution with the signal name: a = solution['a']. The variable
+#    names for any other internal nodes can be chosen freely.  If a
+#    prefix is given, then all variable names must begin with this
+#    prefix.
+#
+# 2) In order to implement the transformation, you will need to
+#    traverse the circuit graph for all outputs (and named internal
+#    signals). Make sure that you do not forget any of the defined
+#    node types. Check the file circuit.py to find out about the
+#    possible node types. You can use the function node.getID() in
+#    order to obtain a unique identifier for a node.
+#
+# 3) Test your code! There is a test script named test.py. If your
+#    code passes all the tests, there is a good chance that it is
+#    correct.
+
+def transform(c, prefix=''):
 
     # TODO: implement me
     pass
 
-# ================================================================= TEST CODE
-
-if __name__ == '__main__':
-
-    adder = circ.parse('benchmarks/fa.crc')
-    cnf = transform(adder)
-    print (cnf)
-    

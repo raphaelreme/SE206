@@ -20,5 +20,6 @@ Files in this directory
 |ec.py |           Source code for exercise 3: Implement an equivalence checker |
 |examples.py|     Example code for API usage|
 |README.py|       This file|
+|test.py | Test script. Run it to test your code|
 |transform.py|    Source code for exercise 2: Implement the Tseitin transformation|
 

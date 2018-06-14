@@ -545,21 +545,34 @@ circuit =  (skip(circ) + name
             + skip(finished)) >> make_circ
 
 
+red = '\033[31m'
+blue = '\033[34;1m'
+green = '\033[32m'
+cyan = '\033[36m'
+normal = '\033[0m'
+
+def print_info(message):
+    print (cyan + "[INFO ] " + normal + message)
+
+def print_error(message):
+    print (red + "[ERROR] " + normal + message)
+
+
 # main parse function
 def parse(filename):
     '''Parse a circuit from a given file'''
-    
-    print ("[INF] Parsing file '%s'" % filename)
+
+    print_info("Parsing file '%s'" % filename)
     try:
         with open(filename, 'r') as f:
             s = f.read()
             tok = tokenize(s)
             return circuit.parse(tok)
     except FileNotFoundError as e:
-        print ("[ERR] Could not open file '%s'" % filename)
+        print_error("Could not open file '%s'" % filename)
         raise e
     except BrokenCircuitException as e:
-        print ("[ERR] %s" % e)
+        print_error("%s" % e)
         raise e
     except NoParseError as e:
         epos = e.state.pos
@@ -568,9 +581,9 @@ def parse(filename):
         start = etok.start[1]
         end = etok.end[1]
         lineNo = etok.start[0]
-        print ("[ERR] Syntax error in line %d:" % lineNo)
-        print ("[ERR] %s" % line.replace('\n',''))
-        print ("[ERR] " + (' '*start) + ('~'*(end-start+1)))
+        print_error("Syntax error in line %d:" % lineNo)
+        print_error("%s" % line.replace('\n',''))
+        print_error((' '*start) + ('~'*(end-start+1)))
         raise e
             
         
