@@ -32,7 +32,7 @@ def print_error(message):
 # =============================================================================
 # Test code for full adder CNF
 # =============================================================================
-    
+
 def test_adder():
     from adder import mk_adder
 
@@ -47,7 +47,7 @@ def test_adder():
     def constrain(cnf, test):
         def constr(x):
             return SatVar(x) if test[x] else ~SatVar(x)
-        return cnf & constr('a') & constr('b') & constr('cin')        
+        return cnf & constr('a') & constr('b') & constr('cin')
 
     # Functions to display test cases
     def head():
@@ -81,14 +81,14 @@ def test_adder():
             else:
                 r += red
                 r += '%i' % sat['s'] + normal
-                good = False            
+                good = False
             if not good:
                 r += ' [wrong outputs]'
             if not complete:
                 r += ' [incomplete solution]'
         print_result(r)
         return good and complete
-    
+
     # test all input conditions
     B = [False, True]
     tests = [{'a':a, 'b':b, 'cin':c} for a in B for b in B for c in B]
@@ -96,7 +96,7 @@ def test_adder():
     head()
     pass_test = True
     for test in tests:
-        sim = adder.simulate(test)        
+        sim = adder.simulate(test)
         sat = solver.solve(constrain(cnf, test))
         pass_test = row(sim, sat) and pass_test
     return pass_test
@@ -120,7 +120,7 @@ def allSAT(cnf, blockVars = None):
 # Test if solutions of CNF are consistent with circuit simulations
 def check(filename, max_tests):
     c = circ.parse(filename)
-    try:        
+    try:
         cnf = transform.transform(c)
     except Exception as e:
         print_error("Transformation of circuit '%s' failed." % c.name)
@@ -158,7 +158,7 @@ def check(filename, max_tests):
             break
         if validate(solution):
             good += 1
-        tests += 1    
+        tests += 1
     return (True, good, tests)
 
 def test_transform(max_tests = 10):
@@ -197,7 +197,7 @@ def test_ec():
     succ = True
     succ &=  check_ec(twoa, twob, False)
     succ &=  check_ec(twob, twoa, False)
-    
+
     adder1 = circ.parse('benchmarks/fa.crc')
     adder2 = circ.parse('benchmarks/fa2.crc')
     adder3 = circ.parse('benchmarks/fa3.crc')
@@ -225,7 +225,7 @@ def test_ec():
     succ &= check_ec(cra16, cla16, True)
     succ &= check_ec(flt16, cla16, False)
     succ &= check_ec(cra16, flt16, False)
-    
+
     # And the biggest...
     cra32 = circ.parse('benchmarks/cra32.crc')
     cla32 = circ.parse('benchmarks/cla32.crc')
@@ -280,5 +280,4 @@ if __name__ == '__main__':
         print_error("Something went seriously wrong.")
         print (e)
         print(traceback.format_exc())
-    
-        
+
