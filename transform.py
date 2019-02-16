@@ -82,18 +82,37 @@ def transform(c: Circuit, prefix: str=''):
         node = c.getEquation(keys)
 
         children = node.getChildren()
-        if not children:
-            if type(node).__name__ == "Variable":
-                a = SatVar(prefix+node.getName())
-                cnf = cnf & mk_eq(s, a)
-            if type(node).__name__ == "Literal":
-                if (node.getValue()):
-                    cnf = cnf & s
-                else:
-                    cnf = cnf & ~s
-        else:
-            a, cnf1 = f(node, prefix)
-            cnf = cnf & cnf1 & mk_eq(s, a)
 
+        if type(node).__name__ == "Variable":
+            a = SatVar(prefix+node.getName())
+            cnf = cnf & mk_eq(s, a)
+
+        if type(node).__name__ == "Literal":
+            if (node.getValue()):
+                cnf = cnf & s
+            else:
+                cnf = cnf & ~s
+
+        if type(node).__name__ == "BinOp":
+            a, cnf1 = f(node.getChild(0), prefix)
+            b, cnf2 = f(node.getChild(1), prefix)
+            cnf = cnf & cnf1 & cnf2
+            if (node.getOp() == "&"):
+                cnf = cnf & mk_and(s, a, b)
+            elif (node.getOp() == "^"):
+                cnf = cnf & mk_xor(s, a, b)
+            elif (node.getOp() == "|"):
+                cnf = cnf & mk_or(s, a, b)
+            else:
+                raise ValueError("Unrecognized operator " + node.getOp())
+
+
+        if type(node).__name__ == "UnOp":
+            a, cnf1 = f(node.getChild(0), prefix)
+            cnf = cnf & cnf1
+            if (node.getOp() == "~"):
+                cnf = cnf & mk_not(s, a)
+            else:
+                raise ValueError("Unrecognized operator " + node.getOp())
 
     return cnf
