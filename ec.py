@@ -6,6 +6,7 @@ import circuit.circuit as circ
 from circuit.cnf import SatVar, Solver, Solution, Cnf
 from circuit.circuit import Circuit
 from transform import transform
+from adder import *
 
 # Implementation hints:
 #
