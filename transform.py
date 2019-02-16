@@ -70,7 +70,7 @@ def f(node, prefix = ''):
             raise ValueError("Unrecognized operator " + node.getOp())
         return s, cnf
 
-def transform(c: Circuit, prefix: str=''):
+def transform(c: Circuit, prefix: str='') -> Cnf:
     '''The function transform takes a Circuit c and returns a Cnf obtained by the
     Tseitin transformation of c. The optional prefix string will be used for
     all variable names in the Cnf.

@@ -46,7 +46,7 @@ def mk_eq(s, a):
     """Take 1 inputs a and 1 output s. Return the cnf of the gate s <=> a"""
     return (s | ~a) & (~s | a)
 
-def mk_adder():
+def mk_adder() -> Cnf:
     return mk_xor(s0, a, b) & mk_xor(s, cin, s0) & mk_and(s1, a, b) & mk_and(s2, cin, s0) & mk_or(cout, s1, s2)
 
 def solve():
