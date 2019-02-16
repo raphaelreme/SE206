@@ -49,7 +49,7 @@ def check(c1: Circuit, c2: Circuit) -> (bool, Solution):
 
     outputs = list(c1.getOutputs())
     n = len(outputs)
-    s = Sat_Var("mitter_output")
+    s = SatVar("mitter_output")
 
     if n == 1:
         c1_output = SatVar("c1_" + outputs[0])
@@ -87,6 +87,3 @@ def check(c1: Circuit, c2: Circuit) -> (bool, Solution):
         return (True, None)
     else:
         return (False, solution.assignment)
-
-
-    return
