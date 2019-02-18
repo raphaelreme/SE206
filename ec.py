@@ -41,6 +41,8 @@ def check(c1: Circuit, c2: Circuit) -> (bool, Solution):
 
     cnf = cnf1 & cnf2
 
+    # Inputs should be the same.
+    # Mitter_input isn't necessary. (Only here to preserve the name of the entree. Easier to get along with)
     for input in c1.getInputs():
         mitter_input = SatVar(input)
         c1_input = SatVar("c1_" + input)
@@ -51,6 +53,12 @@ def check(c1: Circuit, c2: Circuit) -> (bool, Solution):
     n = len(outputs)
     s = SatVar("mitter_output")
 
+    # Computation of the mitter output :
+    # Xor of the outputs of the Circuits
+    # Then an or of all these xor (as we only have made a binary_or function, we do as many or as needed)
+    #
+    # The code would be simplier if a 1 Litteral were added to always make a binary or, even when there only is one xor
+    # But it would be less efficient.
     if n == 1:
         c1_output = SatVar("c1_" + outputs[0])
         c2_output = SatVar("c2_" + outputs[0])

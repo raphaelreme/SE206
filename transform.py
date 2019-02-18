@@ -31,7 +31,7 @@ from adder import *
 
 
 
-def f(node, prefix = ''):
+def transform_rec(node, prefix = ''):
     cnf = Cnf()
 
     children = node.getChildren()
@@ -48,8 +48,8 @@ def f(node, prefix = ''):
         return s, cnf
 
     if type(node).__name__ == "BinOp":
-        a, cnf1 = f(node.getChild(0), prefix)
-        b, cnf2 = f(node.getChild(1), prefix)
+        a, cnf1 = transform_rec(node.getChild(0), prefix)
+        b, cnf2 = transform_rec(node.getChild(1), prefix)
         cnf = cnf & cnf1 & cnf2
         if (node.getOp() == "&"):
             cnf = cnf & mk_and(s, a, b)
@@ -62,7 +62,7 @@ def f(node, prefix = ''):
         return s, cnf
 
     if type(node).__name__ == "UnOp":
-        a, cnf1 = f(node.getChild(0), prefix)
+        a, cnf1 = transform_rec(node.getChild(0), prefix)
         cnf = cnf & cnf1
         if (node.getOp() == "~"):
             cnf = cnf & mk_not(s, a)
@@ -83,6 +83,7 @@ def transform(c: Circuit, prefix: str='') -> Cnf:
 
         children = node.getChildren()
 
+        # This case should not really happen in a real circuit.
         if type(node).__name__ == "Variable":
             a = SatVar(prefix+node.getName())
             cnf = cnf & mk_eq(s, a)
@@ -94,8 +95,8 @@ def transform(c: Circuit, prefix: str='') -> Cnf:
                 cnf = cnf & ~s
 
         if type(node).__name__ == "BinOp":
-            a, cnf1 = f(node.getChild(0), prefix)
-            b, cnf2 = f(node.getChild(1), prefix)
+            a, cnf1 = transform_rec(node.getChild(0), prefix)
+            b, cnf2 = transform_rec(node.getChild(1), prefix)
             cnf = cnf & cnf1 & cnf2
             if (node.getOp() == "&"):
                 cnf = cnf & mk_and(s, a, b)
@@ -108,7 +109,7 @@ def transform(c: Circuit, prefix: str='') -> Cnf:
 
 
         if type(node).__name__ == "UnOp":
-            a, cnf1 = f(node.getChild(0), prefix)
+            a, cnf1 = transform_rec(node.getChild(0), prefix)
             cnf = cnf & cnf1
             if (node.getOp() == "~"):
                 cnf = cnf & mk_not(s, a)
